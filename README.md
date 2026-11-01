@@ -1,44 +1,138 @@
-# Ez Notes
+# Ez Notes - Offline-First Notes App
 
-Ez Notes is a complete offline-first notes application built with modern Android development practices. It requires no backend, login, API keys, or internet permissions.
+## Project Overview
 
-## Features
-- **Offline First**: All data is persisted locally using Room database.
-- **Create & Edit Notes**: Add a title and content to your notes.
-- **Search & Sort**: Filter notes by title and body, sort by "Last updated" or alphabetically (A-Z).
-- **Pin Notes**: Pin important notes to the top of your list.
-- **Swipe to Delete**: Delete notes from the home screen by swiping. Includes Undo support.
-- **Data Protection**: Prevent saving blank notes, and auto-title notes with content but no title. Warns user if they try to discard unsaved edits.
-- **Modern UI**: Jetpack Compose and Material 3 design system, supporting both light and dark themes. 
+Ez Notes is an Android notes application that works **fully offline**. Users can create, view, edit, delete, search, sort and organize personal notes. All notes are stored on the device using a Room database, so they remain available after the app is closed or the device is restarted. The app needs no backend, account, API key or internet connection.
 
-## Project Setup & Build Instructions
-1. Clone this repository and open the project in Android Studio (Ladybug or newer).
-2. The project uses standard Gradle properties. Build and run directly on an emulator or physical device running API 25+.
-3. Run unit tests under the `app/src/test/` directory.
+**Key features**
+- Create, edit and delete notes (with delete confirmation)
+- Search by title and body text (case-insensitive) with a no-results state
+- Sort by last updated (newest first) or title (A-Z)
+- Empty state on the home screen
+- Blank notes cannot be saved; a blank title with body text is saved as "Untitled note"
+- All core features work in airplane mode
 
-## Architecture
-This app strictly follows the official Android Architecture Guidelines (UI Layer -> UI State -> ViewModel -> Repository -> Data Source).
-- **Data Layer**: Room handles SQLite. `NoteEntity` defines the schema, and `NoteDao` provides data as Kotlin `Flow`s.
-- **Repository**: `NotesRepository` provides a clean API for the ViewModel and abstracts the Room data source.
-- **UI Layer**: Jetpack Compose for declarative UI. `NotesListViewModel` and `NoteEditorViewModel` expose unidirectional data flows (`StateFlow<UiState>`).
-- **Dependency Injection**: A simple Manual Dependency Injection container (`AppContainer`) is used in the `EzNotesApplication` class to instantiate the repository exactly once for the app's lifecycle, avoiding the overhead of heavy frameworks like Hilt.
+## Setup and Build Instructions
+
+**Requirements:** Android Studio (latest stable), JDK 17, and an emulator or device running Android 7.0 (API 24) or higher.
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Harshit-the-coader/Ez_Notes.git
+   ```
+2. Open the project in Android Studio and wait for the Gradle sync to finish.
+3. Select an emulator or a connected device and click **Run**.
+
+**Build the APK:**
+- Android Studio: **Build > Build Bundle(s) / APK(s) > Build APK(s)**
+- Or via terminal:
+  ```bash
+  ./gradlew assembleDebug
+  ```
+- Output: `app/build/outputs/apk/debug/app-debug.apk`
+
+## Architecture Summary
+
+The app follows **MVVM** with a clear separation between the UI, ViewModel and data layers.
+
+```
+Compose UI  <--  ViewModel (StateFlow)  <--  Repository  <--  DAO  <--  Room
+```
+
+- **data/local:** Room entity, DAO and database
+- **data/repository:** `NotesRepository`, the only data access point used by the ViewModels
+- **ui/notes:** list screen, editor screen, ViewModels and UI state
+- **ui/navigation:** navigation routes
+
+Room exposes notes as a `Flow`. The ViewModel combines that flow with the current search query and sort option, exposes the result as a `StateFlow`, and Compose collects it with `collectAsStateWithLifecycle()`, so the UI updates automatically whenever the database changes.
 
 ## Libraries Used
-- **Jetpack Compose**: UI Toolkit (Material 3).
-- **Navigation Compose**: Type-safe declarative navigation.
-- **Room (KSP)**: Local SQLite persistence.
-- **Lifecycle (ViewModel Compose, collectAsStateWithLifecycle)**: State and lifecycle awareness.
-- **Kotlinx Coroutines & Flow**: Reactive asynchronous programming.
-- **Kotlinx Coroutines Test**: For testing ViewModel logic and Flows.
 
-## Key Design Decisions
-1. **Manual DI over Hilt**: Manual DI via `AppContainer` keeps the project compilation fast and avoids the boilerplate required for simple apps, while still keeping components testable through constructor injection.
-2. **StateFlow combination**: In the `NotesListViewModel`, the `searchQuery` and `sortOption` StateFlows are combined with `flatMapLatest` into a single Flow that hits the Room DAO. This ensures the UI is always perfectly in sync with the search/sort criteria, entirely reactively. Room correctly escapes SQL wildcard strings (`%`, `_`) directly in the Repository before passing it to the database query.
-3. **Draft Safety**: The Editor ViewModel retains the initial state of a note when loaded. It checks `hasUnsavedChanges()` by comparing the `uiState` with the `initialNoteState`. If changes exist, a "Discard changes?" alert is presented when hitting back.
-4. **Duplicate Save Prevention**: The `saveNote()` method uses a boolean lock `isSaving` in the `uiState`. As it launches a coroutine, subsequent clicks are ignored until the operation yields.
-5. **Blank Note Validation**: If a user attempts to save a note with a blank title and blank body, a Snackbar error triggers rather than filling the DB with ghost rows. If only the body is present, the note assumes "Untitled note" implicitly.
+- Kotlin
+- Jetpack Compose (Material 3)
+- Room (with KSP)
+- Kotlin Coroutines and Flow / StateFlow
+- Navigation Compose
+- AndroidX Lifecycle (ViewModel)
 
 ## Known Limitations
-- Rich text formatting (bold, italics, images) is not currently supported.
-- Does not currently support labels/tags or folders for organizing notes.
-- Pinned notes aren't sorted among themselves other than by the active sort selection.
+
+- No note categories or colors
+- No UI (instrumented) tests
+- No backup, export or import of notes
+- Tablet and landscape layouts are functional but not specially optimized
+
+## Author
+
+**Harshit Singh**
+Email: hs26112005@gmail.com
+GitHub: [Harshit-the-coader](https://github.com/Harshit-the-coader)
+# Ez Notes - Offline-First Notes App
+
+## Project Overview
+
+Ez Notes is an Android notes application that works **fully offline**. Users can create, view, edit, delete, search, sort and organize personal notes. All notes are stored on the device using a Room database, so they remain available after the app is closed or the device is restarted. The app needs no backend, account, API key or internet connection.
+
+**Key features**
+- Create, edit and delete notes (with delete confirmation)
+- Search by title and body text (case-insensitive) with a no-results state
+- Sort by last updated (newest first) or title (A-Z)
+- Empty state on the home screen
+- Blank notes cannot be saved; a blank title with body text is saved as "Untitled note"
+- All core features work in airplane mode
+
+## Setup and Build Instructions
+
+**Requirements:** Android Studio (latest stable), JDK 17, and an emulator or device running Android 7.0 (API 24) or higher.
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Harshit-the-coader/Ez_Notes.git
+   ```
+2. Open the project in Android Studio and wait for the Gradle sync to finish.
+3. Select an emulator or a connected device and click **Run**.
+
+**Build the APK:**
+- Android Studio: **Build > Build Bundle(s) / APK(s) > Build APK(s)**
+- Or via terminal:
+  ```bash
+  ./gradlew assembleDebug
+  ```
+- Output: `app/build/outputs/apk/debug/app-debug.apk`
+
+## Architecture Summary
+
+The app follows **MVVM** with a clear separation between the UI, ViewModel and data layers.
+
+```
+Compose UI  <--  ViewModel (StateFlow)  <--  Repository  <--  DAO  <--  Room
+```
+
+- **data/local:** Room entity, DAO and database
+- **data/repository:** `NotesRepository`, the only data access point used by the ViewModels
+- **ui/notes:** list screen, editor screen, ViewModels and UI state
+- **ui/navigation:** navigation routes
+
+Room exposes notes as a `Flow`. The ViewModel combines that flow with the current search query and sort option, exposes the result as a `StateFlow`, and Compose collects it with `collectAsStateWithLifecycle()`, so the UI updates automatically whenever the database changes.
+
+## Libraries Used
+
+- Kotlin
+- Jetpack Compose (Material 3)
+- Room (with KSP)
+- Kotlin Coroutines and Flow / StateFlow
+- Navigation Compose
+- AndroidX Lifecycle (ViewModel)
+
+## Known Limitations
+
+- No note categories or colors
+- No UI (instrumented) tests
+- No backup, export or import of notes
+- Tablet and landscape layouts are functional but not specially optimized
+
+## Author
+
+**Harshit Singh**
+Email: hs26112005@gmail.com
+GitHub: [Harshit-the-coader](https://github.com/Harshit-the-coader)
